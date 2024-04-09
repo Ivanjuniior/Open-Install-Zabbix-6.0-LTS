@@ -11,6 +11,19 @@
 #=====>        DISTRO:..........:    Debian GNU/Linux 12 (Bookworm)  #
 #====================================================================>
 
+# Definir o caminho do arquivo de log
+LOG_FILE="/var/log/auto_install_zabbix.log"
+
+# Função para registrar mensagens no arquivo de log
+log_message() {
+    local timestamp
+    timestamp=$(date +"%Y-%m-%d %T")
+    echo "[$timestamp] $1" >> "$LOG_FILE"
+}
+
+# Registrar início da execução do script no arquivo de log
+log_message "Início da execução do script auto_install_zabbix_6.0.sh"
+
 clear
 # Verifica se o sistema operacional é compatível
 if [[ "$(lsb_release -is)" != "Debian" && "$(lsb_release -is)" != "Ubuntu" ]]; then
@@ -269,6 +282,12 @@ elif [ "$SERVIDOR" == "nginx" ]; then
     systemctl restart zabbix-server zabbix-agent nginx
 fi
 
+# Mensagem de conclusão
+log_message "Instalação concluída com sucesso. Acesse o frontend do Zabbix em http://$IP/zabbix/"
+
+# Exibe a mensagem de conclusão para o usuário
+dialog --msgbox "Instalação concluída com sucesso. Acesse o frontend do Zabbix em http://$IP/zabbix/" 0 0
+
 # Diálogo para confirmar a instalação do Grafana
 dialog --stdout --yesno "Deseja instalar o Grafana?" 0 0
 response=$?
@@ -286,9 +305,12 @@ if [ $response -eq 0 ]; then
     systemctl daemon-reload
     systemctl start grafana-server
     systemctl enable grafana-server
+    # Exibe a mensagem de conclusão para o usuário
+    dialog --msgbox "Instalação concluída com sucesso. Acesse o frontend do Zabbix em http://$IP:3000" 0 0
 else
     echo "Instalação do Grafana cancelada."
 fi
+
 
 # Ajustes SNMP
 #O pulo do gato para o perfeito monitoramento, ajustes SNMP
@@ -300,10 +322,11 @@ apt-get -y install smistrip
 #ajuste mib quebrada
 wget -O /usr/share/snmp/mibs/ietf/SNMPv2-PDU http://pastebin.com/raw.php?i=p3QyuXzZ
 clear
-
 # Mensagem de conclusão
 echo "Instalação concluída."
 echo ""
 echo "Deixe uma estrela no repositório do github:Ivanjuniior"
 echo "Desenvolvido por: Ivan Junior"
 echo "Doaçoes via pix: contato@ivanjr.eti.br"
+# Registrar fim da execução do script no arquivo de log
+log_message "Fim da execução do script auto_install_zabbix_6.0.sh"
